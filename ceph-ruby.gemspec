@@ -6,8 +6,11 @@ require 'ceph-ruby/version'
 Gem::Specification.new do |gem|
   gem.name          = 'ceph-ruby-livelink'
   gem.version       = CephRuby::VERSION
-  gem.authors       = ['Netskin GmbH', 'Corin Langosch', 'LivelinkTechnology LTD', 'Stuart Harland']
-  gem.email         = ['info@netskin.com', 'info@corinlangosch.com', 'infraops@livelinktechnology.net', 's.harland@livelinktechnology.net']
+  gem.authors       = ['Netskin GmbH', 'Corin Langosch',
+                       'LivelinkTechnology LTD', 'Stuart Harland']
+  gem.email         = ['info@netskin.com', 'info@corinlangosch.com',
+                       'infraops@livelinktechnology.net',
+                       's.harland@livelinktechnology.net']
   gem.description   = 'Easy management of Ceph'
   gem.summary       = 'Easy management of Ceph Distributed Storage System'
   gem.homepage      = 'http://github.com/livelink/ceph-ruby'

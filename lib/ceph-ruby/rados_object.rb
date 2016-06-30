@@ -20,27 +20,24 @@ module CephRuby
     def overwrite(data)
       size = data.bytesize
       log("overwrite size #{size}")
-      rados_call("overwrite of #{size} bytes to '#{name}'"\
-                                ' failed') do |ret|
-        ret = Lib::Rados.rados_write_full(pool.handle, name, data, size)
+      CephRuby.rados_call("overwrite of #{size} bytes to '#{name}' failed") do
+        Lib::Rados.rados_write_full(pool.handle, name, data, size)
       end
     end
 
     def write(offset, data)
       size = data.bytesize
       log("write offset #{offset}, size #{size}")
-      rados_call("write of #{size} bytes to '#{name}'"\
-                                " at #{offset} failed") do |ret|
-        ret = Lib::Rados.rados_write(pool.handle, name, data, size, offset)
+      CephRuby.rados_call("cannot write #{size}B to '#{name}'") do
+        Lib::Rados.rados_write(pool.handle, name, data, size, offset)
       end
     end
 
     def append(data)
       size = data.bytesize
       log("append #{size}B")
-      rados_call("appendment of #{size} bytes to '#{name}'"\
-                                ' failed') do |ret|
-        ret = Lib::Rados.rados_append(pool.handle, name, data, size)
+      CephRuby.rados_call("appending #{size} bytes to '#{name}' failed") do
+        Lib::Rados.rados_append(pool.handle, name, data, size)
       end
     end
 
@@ -49,9 +46,9 @@ module CephRuby
     def read(offset, size)
       log("read offset #{offset}, size #{size}")
       data_p = FFI::MemoryPointer.new(:char, size)
-      r = rados_call("read of #{size} bytes from '#{name}'"\
-                                " at #{offset} failed") do |ret|
-        ret = Lib::Rados.rados_read(pool.handle, name, data_p, size, offset)
+      r = CephRuby.rados_call("read #{size}B from '#{name}' failed") do
+        Lib::Rados.rados_read(pool.handle, name, data_p, size, offset)
+      end
       data_p.get_bytes(0, r)
     end
 
@@ -62,16 +59,15 @@ module CephRuby
 
     def destroy
       log('destroy')
-      rados_call("destruction of '#{name}' failed") do |ret|
-        ret = Lib::Rados.rados_remove(pool.handle, name)
+      CephRuby.rados_call("destruction of '#{name}' failed") do
+        Lib::Rados.rados_remove(pool.handle, name)
       end
     end
 
     def resize(size)
       log("resize size #{size}")
-      rados_call("resize of '#{name}'"\
-                                " to #{size} failed") do |ret|
-        ret = Lib::Rados.rados_trunc(pool.handle, name, size)
+      CephRuby.rados_call("resize of '#{name}' to #{size} failed") do
+        Lib::Rados.rados_trunc(pool.handle, name, size)
       end
     end
 
@@ -79,10 +75,10 @@ module CephRuby
       log('stat')
       size_p = FFI::MemoryPointer.new(:uint64)
       mtime_p = FFI::MemoryPointer.new(:uint64)
-      rados_call("stat of '#{name}' failed") do |ret|
-        ret = Lib::Rados.rados_stat(pool.handle, name, size_p, mtime_p)
-        RadosObject.stat_hash(size_p, mtime_p)
+      CephRuby.rados_call("stat of '#{name}' failed") do
+        Lib::Rados.rados_stat(pool.handle, name, size_p, mtime_p)
       end
+      RadosObject.stat_hash(size_p, mtime_p)
     end
 
     class << self
