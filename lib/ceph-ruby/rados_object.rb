@@ -103,8 +103,8 @@ module CephRuby
 
       def to_h
         {
-          size: size_p.get_uint64(0),
-          mtime: Time.at(mtime_p.get_uint64(0))
+          size: @size_p.get_uint64(0),
+          mtime: Time.at(@mtime_p.get_uint64(0))
         }
       end
     end
