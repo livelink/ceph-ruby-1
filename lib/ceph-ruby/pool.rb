@@ -6,10 +6,10 @@ module CephRuby
     extend CephRuby::PoolHelper
     include CephRuby::PoolHelper
     include ::Comparable
-    attr_accessor :cluster, :name, :handle
+    attr_accessor :cluster_handle :name, :handle
 
     def initialize(cluster, name)
-      self.cluster = cluster
+      self.cluster_handle = cluster.handle
       self.name = name
       begin
         yield(self)
@@ -20,10 +20,11 @@ module CephRuby
 
     def exists?
       log('exists?')
-      ret = Lib::Rados.rados_pool_lookup(cluster.handle, name)
-      return true if ret >= 0
-      return false if ret == -Errno::ENOENT::Errno
-      raise SystemCallError.new("lookup of '#{name}' failed", -ret) if ret < 0
+      r = CephRuby.rados_call("lookup of '#{name}'", ERRNO::ENOENT::Errno) do
+        Lib::Rados.rados_pool_lookup(cluster_handle, name)
+      end
+      r == -Errno::ENOENT::Errno
+      
     end
 
     alias exist? exists?
@@ -56,7 +57,7 @@ module CephRuby
       log('open')
       handle_p = FFI::MemoryPointer.new(:pointer)
       CephRuby.rados_call("creation of io context '#{name}'") do
-        Lib::Rados.rados_ioctx_create(cluster.handle, name, handle_p)
+        Lib::Rados.rados_ioctx_create(cluster_handle, name, handle_p)
       end
       self.handle = handle_p.get_pointer(0)
     end
@@ -93,7 +94,7 @@ module CephRuby
 
     def destroy
       CephRuby.rados_call('delete pool') do
-        Lib::Rados.rados_pool_delete(cluster.handle, name)
+        Lib::Rados.rados_pool_delete(cluster_handle, name)
       end
     end
 
