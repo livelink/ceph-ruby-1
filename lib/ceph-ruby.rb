@@ -29,4 +29,10 @@ module CephRuby
     return unless logger
     logger.info("CephRuby: #{message}")
   end
+
+  def self.rados_call(message)
+    ret = yield
+    raise SystemCallError.new(message, -ret) if ret < 0
+    ret
+  end
 end
