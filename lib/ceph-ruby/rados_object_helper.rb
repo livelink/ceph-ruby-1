@@ -1,4 +1,5 @@
 module CephRuby
+  # Helper functions for Rados Object
   module RadosObjectHelper
     def size
       stat[:size]
