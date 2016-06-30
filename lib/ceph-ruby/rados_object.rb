@@ -105,7 +105,7 @@ module CephRuby
 
       def to_h
         {
-          name: name
+          name: name,
           size: size_p.get_uint64(0),
           mtime: Time.at(mtime_p.get_uint64(0))
         }

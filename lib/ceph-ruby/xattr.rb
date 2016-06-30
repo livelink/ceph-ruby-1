@@ -1,7 +1,7 @@
 module CephRuby
   # Representation of a File extended Attribute
   class Xattr
-    attr_accessor :rados_object, :name, :pool
+    attr_accessor :name, :pool, :object_name
 
     def initialize(rados_object, name)
       raise Errno::ENOENT, 'RadosObject is nil' unless rados_object.exists?
@@ -9,7 +9,7 @@ module CephRuby
         'xattr name cannot be nil',
         Errno::ENOENT::Errno
       ) if name.nil?
-      self.rados_object = rados_object
+      self.object_name = rados_object.name
       self.pool = rados_object.pool
       self.name = name
       yield(self) if block_given?
@@ -25,11 +25,11 @@ module CephRuby
 
     def destroy
       log('destroy')
-      ret = Lib::Rados.rados_rmxattr(pool.handle,
-                                     rados_object.name,
-                                     name)
-      raise SystemCallError.new("destruction of xattr '#{name}' failed",
-                                -ret) if ret < 0
+      CephRuby.rados_call("destruction of xattr '#{name}'") do
+        Lib::Rados.rados_rmxattr(pool.handle,
+                                 object_name,
+                                 name)
+      end
     end
 
     def to_s
@@ -38,7 +38,7 @@ module CephRuby
 
     def log(message)
       CephRuby.log('rados obj xattr '\
-                   "#{rados_object.name}/#{name} #{message}")
+                   "#{object_name}/#{name} #{message}")
     end
 
     private
@@ -46,22 +46,22 @@ module CephRuby
     def read(size)
       log("read #{size}b")
       data_p = FFI::MemoryPointer.new(:char, size)
-      ret = Lib::Rados.rados_getxattr(pool.handle,
-                                      rados_object.name,
-                                      name, data_p, size)
-      raise SystemCallError.new("read of xattr '#{name}' failed",
-                                -ret) if ret < 0
-      data_p.get_bytes(0, ret)
+      r = CephRuby.rados_call("xattr read '#{name}'") do
+        Lib::Rados.rados_getxattr(pool.handle,
+                                  object_name,
+                                  name, data_p, size)
+      end
+      data_p.get_bytes(0, r)
     end
 
     def write(data)
       size = data.bytesize
       log("write size #{size}")
-      ret = Lib::Rados.rados_setxattr(pool.handle,
-                                      rados_object.name,
-                                      name, data, size)
-      raise SystemCallError.new("write of xattr '#{name}' failed",
-                                -ret) if ret < 0
+      CephRuby.rados_call("xattr write '#{name}'") do
+        Lib::Rados.rados_setxattr(pool.handle,
+                                  object_name,
+                                  name, data, size)
+      end
     end
   end
 end
