@@ -81,17 +81,17 @@ module CephRuby
 
     # Representation  of a Rados Object Stat
     class Stat
-      attr_accessor :pool, :rados_object
+      attr_accessor :pool, :name
 
       def initialize(rados_object)
-        self.rados_object = rados_object
+        self.name = rados_object.name
         self.pool = rados_object.pool
         stats
       end
 
       def stats
-        ::CephRuby.rados_call("stat of '#{rados_object.name}'") do
-          Lib::Rados.rados_stat(pool.handle, rados_object.name, size_p, mtime_p)
+        ::CephRuby.rados_call("stat of '#{name}'") do
+          Lib::Rados.rados_stat(pool.handle, name, size_p, mtime_p)
         end
       end
 
@@ -105,8 +105,9 @@ module CephRuby
 
       def to_h
         {
-          size: @size_p.get_uint64(0),
-          mtime: Time.at(@mtime_p.get_uint64(0))
+          name: name
+          size: size_p.get_uint64(0),
+          mtime: Time.at(mtime_p.get_uint64(0))
         }
       end
     end
