@@ -6,7 +6,7 @@ module CephRuby
     extend CephRuby::PoolHelper
     include CephRuby::PoolHelper
     include ::Comparable
-    attr_accessor :cluster_handle :name, :handle
+    attr_accessor :cluster_handle, :name, :handle
 
     def initialize(cluster, name)
       self.cluster_handle = cluster.handle
@@ -20,11 +20,12 @@ module CephRuby
 
     def exists?
       log('exists?')
-      r = CephRuby.rados_call("lookup of '#{name}'", ERRNO::ENOENT::Errno) do
+      CephRuby.rados_call("lookup of '#{name}'") do
         Lib::Rados.rados_pool_lookup(cluster_handle, name)
       end
-      r == -Errno::ENOENT::Errno
-      
+      true
+    rescue Errno::ENOENT
+      false
     end
 
     alias exist? exists?
