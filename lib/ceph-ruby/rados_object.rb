@@ -73,12 +73,44 @@ module CephRuby
 
     def stat
       log('stat')
-      size_p = FFI::MemoryPointer.new(:uint64)
-      mtime_p = FFI::MemoryPointer.new(:uint64)
-      CephRuby.rados_call("stat of '#{name}' failed") do
-        Lib::Rados.rados_stat(pool.handle, name, size_p, mtime_p)
+
+      RadosObject::Stat.new(self).to_h
+      # size_p = FFI::MemoryPointer.new(:uint64)
+      # mtime_p = FFI::MemoryPointer.new(:uint64)
+      # CephRuby.rados_call("stat of '#{name}' failed") do
+      #   Lib::Rados.rados_stat(pool.handle, name, size_p, mtime_p)
+      # end
+      # RadosObject.stat_hash(size_p, mtime_p)
+    end
+
+    class Stat
+      attr_accessor :pool, :rados_object
+
+      def initialize(rados_object)
+        self.rados_object = rados_object
+        self.pool = rados_object.pool
       end
-      RadosObject.stat_hash(size_p, mtime_p)
+
+      def stats
+        CepRuby.rados_call("stat of '#{rados_object.name}' failed") do
+          Lib::Rados.rados_stat(pool.handle, rados_object.name, size_p, mtime_p)
+        end
+      end
+
+      def size_p
+        @size_p ||= FFI::MemoryPointer.new(:uint64)
+      end
+
+      def mtime_p
+        @mtime_p ||= FFI::MemoryPointer.new(:uint64)
+      end
+
+      def to_h
+        {
+           size: size_p.get_uint64(0),
+           mtime: Time.at(mtime_p.get_uint64(0))
+        }
+      end
     end
 
     class << self
