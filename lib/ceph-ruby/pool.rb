@@ -36,18 +36,18 @@ module CephRuby
     def auid=(dst_auid)
       log("auid=#{dst_auid}")
       ensure_open
-      ret = Lib::Rados.rados_ioctx_pool_set_auid(handle, dst_auid)
-      raise SystemCallError.new('set of auid for'\
-                                 " '#{name}' failed", -ret) if ret < 0
+      CephRuby.rados_call("set of auid for #{name}") do
+        Lib::Rados.rados_ioctx_pool_set_auid(handle, dst_auid)
+      end
     end
 
     def auid
       log('auid')
       ensure_open
       auid_p = FFI::MemoryPointer.new(:uint64)
-      ret = Lib::Rados.rados_ioctx_pool_get_auid(handle, auid_p)
-      raise SystemCallError.new('get of auid for'\
-                                " '#{name}' failed", -ret) if ret < 0
+      CephRuby.rados_call("get auid for #{name}") do
+        Lib::Rados.rados_ioctx_pool_get_auid(handle, auid_p)
+      end
       auid_p.get_uint64(0)
     end
 
@@ -55,9 +55,9 @@ module CephRuby
       return if open?
       log('open')
       handle_p = FFI::MemoryPointer.new(:pointer)
-      ret = Lib::Rados.rados_ioctx_create(cluster.handle, name, handle_p)
-      raise SystemCallError.new('creation of io context for'\
-                                " '#{name}' failed", -ret) if ret < 0
+      CephRuby.rados_call("creation of io context '#{name}'") do
+        Lib::Rados.rados_ioctx_create(cluster.handle, name, handle_p)
+      end
       self.handle = handle_p.get_pointer(0)
     end
 
@@ -92,26 +92,26 @@ module CephRuby
     end
 
     def destroy
-      ret = Lib::Rados.rados_pool_delete(cluster.handle, name)
-      raise SystemCallError.new('delete pool failed',
-                                -ret) if ret < 0
+      CephRuby.rados_call('delete pool') do
+        Lib::Rados.rados_pool_delete(cluster.handle, name)
+      end
     end
 
     def stat
       log('stat')
       stat_s = Lib::Rados::PoolStatStruct.new
       ensure_open
-      ret = Lib::Rados.rados_ioctx_pool_stat(handle, stat_s)
-      raise SystemCallError.new('stat failed',
-                                -ret) if ret < 0
+      CephRuby.rados_call('stat') do
+        Lib::Rados.rados_ioctx_pool_stat(handle, stat_s)
+      end
       stat_s.to_hash
     end
 
     def flush_aio
       ensure_open
-      ret = Lib::Rados.rados_aio_flush(handle)
-      raise SystemCallError.new('aio flush faield',
-                                -ret) if ret < 0
+      CephRuby.rados_call('flush_aio') do
+        Lib::Rados.rados_aio_flush(handle)
+      end
     end
   end
 end

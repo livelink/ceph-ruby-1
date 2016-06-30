@@ -15,6 +15,7 @@ require 'ceph-ruby/pool_helper'
 require 'ceph-ruby/pool'
 require 'ceph-ruby/rados_block_device_helper'
 require 'ceph-ruby/rados_block_device'
+require 'ceph-ruby/rados_object_helper'
 require 'ceph-ruby/rados_object'
 require 'ceph-ruby/xattr'
 require 'ceph-ruby/xattr_enumerator'
@@ -32,7 +33,7 @@ module CephRuby
 
   def self.rados_call(message)
     ret = yield
-    raise SystemCallError.new(message, -ret) if ret < 0
+    raise SystemCallError.new("#{message} failed", -ret) if ret < 0
     ret
   end
 end
